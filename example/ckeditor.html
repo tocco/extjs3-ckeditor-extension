@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ext.ux.form.CKEditor</title>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/extjs/3.4.1-1/resources/css/ext-all.css"/>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/3.4.1-1/adapter/ext/ext-base.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/3.4.1-1/ext-all.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.3.2/ckeditor.js"></script>
+  <script type="text/javascript" src="../src/Ext.ux.form.CKEditor.js"></script>
+</head>
+
+<body>
+
+<script type="text/javascript">
+  Ext.onReady(function() {
+      var ckEditorForm;
+      var ckEditorMinimalForm;
+      var ckEditorWin;
+      var dlg = new Ext.Window({
+          title: "Window",
+          width: 950,
+          height: 500,
+          minWidth: 100,
+          minHeight: 100,
+          layout: "fit",
+          closeAction: "hide",
+          items: [
+              ckEditorWin = new Ext.ux.form.CKEditor({
+                  CKConfig: {
+                      language: "en",
+                      allowedContent: true,
+                      removePlugins: "elementspath,autogrow",
+                      uiColor: "#EEEEEE",
+                      removeButtons: '',
+                      toolbar: [ // http://ckeditor.com/latest/samples/plugins/toolbar/toolbar.html
+                          { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike' ] },
+                          { name: 'paragraph',items: [ 'NumberedList', 'BulletedList' ] },
+                          { name: 'links', items: [ 'Link', 'Unlink' ] },
+                          { name: 'insert', items: [ 'Table', 'SpecialChar' ] },
+                          { name: 'clipboard', items: [ 'PasteText', 'PasteFromWord' ] },
+                          { name: 'document', items: [ 'Source' ] }
+
+                          , '/'
+                          , { name: 'forms', items: [ 'Form', 'Checkbox', 'Radio', 'TextField', 'Textarea', 'Select', 'Button', 'ImageButton', 'HiddenField' ] }
+                      ]
+                  },
+                  value: '<form method="post" name="testform" action="">' +
+                      '<table class="mceItemTable">' +
+                      '<tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr>' +
+                      '<tr><td>Select 1</td><td><select id="select1" name="select1"><option>option 1</option><option>option 2</option><option>option 3</option></select></td></tr>' +
+                      '<tr><td>Radiobutton 1</td><td><input name="radio1" type="radio" class="radio" value="radio1" id="radio1radio1" /><label id="radio1radio1_label" for="radio1radio1">Radiobutton 1</label></td></tr>' +
+                      '<tr><td>Checkbox 1</td><td><input name="check1" type="checkbox" value="X" class="checkbox val:mandatory," id="check1" /><label id="check1_label" for="check1">Checkbox 1</label></td></tr>' +
+                      '<tr><td>Text 1</td><td><input id="text1" value="text1" name="text1" type="text"/></td></tr>' +
+                      '<tr><td>Textarea 1</td><td><textarea id="textarea1" class="val:mandatory," name="textarea1">Text</textarea></td></tr>' +
+                      '<tr><td>File 1</td><td><input name="file1" type="file" id="file1" /></td></tr>' +
+                      '<tr><td><input class="button" value="Absenden" name="submit" type="submit" /></td>' +
+                      '<td><input class="button" value="Zur&uuml;cksetzen" type="reset" /></td></tr></tbody></table></form>'
+                })
+            ]
+      });
+
+      new Ext.form.FormPanel({
+          title: "Form",
+          frame: true,
+          items: [
+              new Ext.form.TextField({
+                  fieldLabel: "Text"
+              }),
+              ckEditorMinimalForm = new Ext.ux.form.CKEditor({
+                  fieldLabel: "Minimal HTML",
+                  CKConfig: {
+                      removeButtons: '',
+                      removePlugins: "elementspath,autogrow",
+                      toolbar: [
+                          { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike' ] },
+                          { name: 'paragraph',items: [ 'NumberedList', 'BulletedList' ] }
+                      ]
+                  }
+              }),
+              ckEditorForm = new Ext.ux.form.CKEditor({
+                  fieldLabel: "Full Featured HTML",
+                  CKConfig: {
+                  }
+              })
+            ],
+            buttonAlign: "left",
+            buttons: [
+                new Ext.Button({
+                    text: "Open Editor Window",
+                    handler: function() {
+                        dlg.show();
+                    }
+                }),
+                new Ext.Button({
+                    text: "Set Value",
+                    handler: function() {
+                        ckEditorForm.setValue("<p>my text</p>");
+                        ckEditorForm.setValue("<p>my text</p>");
+                    }
+                }),
+                new Ext.Button({
+                    text: "Show Value",
+                    handler: function() {
+                        document.getElementById("content").innerHTML = ckEditorForm.getValue();
+                    }
+                })
+            ],
+            renderTo: "form"
+      });
+
+      Ext.util.Observable.capture(ckEditorForm, function (evname) {
+          if (console) console.log(evname, arguments);
+      });
+  });
+</script>
+
+<div id="form" style="margin: 20px"></div>
+
+<div id="content" style="margin: 20px"></div>
+
+</body>
+
+</html>
