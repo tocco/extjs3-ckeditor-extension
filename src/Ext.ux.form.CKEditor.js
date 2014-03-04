@@ -102,47 +102,62 @@ Ext.ux.form.CKEditor = Ext.extend(Ext.form.TextArea, {
     },
 
     setValue: function(value) {
+        this._handleAsyncSetValue(value);
+
+        Ext.ux.form.CKEditor.superclass.setValue.apply(this, arguments);
+    },
+
+    _handleAsyncSetValue: function(value) {
         var self = this;
 
         if (this._setDataInProgress) {
             this._delayedSetData.push(value);
             return;
+        } else {
+            this._delayedSetData = [];
         }
         this._setDataInProgress = true;
 
-        Ext.ux.form.CKEditor.superclass.setValue.apply(this, arguments);
-
-        this._withEditor(function(ck) {
+        var editorAvailable = this._withEditor(function (ck) {
             ck.setData(value,
                 function() {
                     self._onAfterSetData();
                 }
             );
         });
+        if (!editorAvailable) {
+            self._onAfterSetData.defer(1, self); // call it async just like it would be done in the "normal" #setData flow
+        }
     },
 
     _onAfterSetData: function() {
         this._setDataInProgress = false;
         if (this._delayedSetData.length > 0) {
-            for (var i = 0; i < this._delayedSetData.length; i++) {
-                var delayedData = this._delayedSetData[i];
-                this._delayedSetData.splice(i, 1);
-                this.setValue(delayedData);
+            var delayedSetDataCopy = this._delayedSetData.slice(0);
+            this._delayedSetData = [];
+            for (var i = 0; i < delayedSetDataCopy.length; i++) {
+                var delayedData = delayedSetDataCopy[i];
+                delayedSetDataCopy.splice(i, 1);
+                this._handleAsyncSetValue(delayedData);
             }
         }
     },
 
     getValue: function() {
-        this._withEditor(function(ck) {
-            ck.updateElement();
-        });
+        if (!this._setDataInProgress) {
+            this._withEditor(function(ck) {
+                ck.updateElement();
+            });
+        }
         return Ext.ux.form.CKEditor.superclass.getValue.call(this);
     },
 
     getRawValue: function() {
-        this._withEditor(function(ck) {
-            ck.updateElement();
-        });
+        if (!this._setDataInProgress) {
+            this._withEditor(function(ck) {
+                ck.updateElement();
+            });
+        }
         return Ext.ux.form.CKEditor.superclass.getRawValue.call(this);
     },
 
@@ -152,9 +167,15 @@ Ext.ux.form.CKEditor = Ext.extend(Ext.form.TextArea, {
         }
     },
 
+    /**
+     * Calls @param fn on CKEditor when CKEditor is available. Otherwise returns false.
+     */
     _withEditor: function(fn) {
         if (CKEDITOR.instances[this.id]) {
             fn.call(this, CKEDITOR.instances[this.id]);
+            return true;
+        } else {
+            return false;
         }
     }
 });
