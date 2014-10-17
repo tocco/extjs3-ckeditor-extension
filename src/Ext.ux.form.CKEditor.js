@@ -89,6 +89,12 @@ Ext.ux.form.CKEditor = Ext.extend(Ext.form.TextArea, {
         Ext.ux.form.CKEditor.superclass.afterRender.call(this);
         var self = this;
         this._withEditor(function(ck) {
+            ck.on("key", function() { // change event does not fire in source-code mode, see https://dev.ckeditor.com/ticket/12031
+                if (ck.mode !== "source") return;
+                (function() {
+                    self.fireEvent("change", self, self.getValue());
+                }).defer(1); // we need the modified content (i.e. after the key event has been executed)
+            });
             ck.on("change", function() {
                 self.fireEvent("change", self, self.getValue());
             });
